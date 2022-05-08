@@ -17,34 +17,28 @@ const NewHome = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchMovies = useCallback(
-    ({ pageParam = 1 }) => {
-      return API.fetchMovies(searchTerm, pageParam);
-    },
+    ({ pageParam = 1 }) => API.fetchMovies(searchTerm, pageParam),
     [searchTerm]
   );
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isError,
-    isFetching,
-    isFetchingNextPage,
-  } = useInfiniteQuery(["movies", searchTerm], fetchMovies, {
-    getNextPageParam: (lastPage) => {
-      if (lastPage.page + 1 < lastPage.total_pages) return lastPage.page + 1;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isError, isFetchingNextPage } =
+    useInfiniteQuery(["movies", searchTerm], fetchMovies, {
+      getNextPageParam: (lastPage) => {
+        if (lastPage.page < lastPage.total_pages) return lastPage.page + 1;
+      },
+    });
+
+  const heroMovie = data?.pages[0]?.results[0];
 
   if (isError) return <div>Something went wrong...</div>;
 
   return (
     <>
-      {!searchTerm && !isFetching && (
+      {!searchTerm && heroMovie && (
         <HeroImage
-          image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}${data.pages[0].results[0].backdrop_path}`}
-          title={data.pages[0].results[0].original_title}
-          text={data.pages[0].results[0].overview}
+          image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}${heroMovie.backdrop_path}`}
+          title={heroMovie.original_title}
+          text={heroMovie.overview}
         />
       )}
 
@@ -71,7 +65,7 @@ const NewHome = () => {
 
       {isFetchingNextPage && <Spinner />}
 
-      {hasNextPage && !isFetching && (
+      {hasNextPage && !isFetchingNextPage && (
         <Button text="Load More" callback={() => fetchNextPage()} />
       )}
     </>
