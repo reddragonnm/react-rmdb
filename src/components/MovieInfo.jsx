@@ -42,9 +42,10 @@ const MovieInfo = ({ movie }) => (
 
 const Wrapper = styled.div`
   background: ${(props) =>
-    props.backprop
-      ? `url(${IMAGE_BASE_URL}${BACKDROP_SIZE}${props.backprop})`
-      : "#000"};
+      props.backprop
+        ? `url(${IMAGE_BASE_URL}${BACKDROP_SIZE}${props.backprop})`
+        : ""}
+    var(--dark-grey);
   background-size: cover;
   background-position: center;
   padding: 40px 20px;
