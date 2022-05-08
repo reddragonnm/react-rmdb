@@ -8,17 +8,14 @@ import Home from "./routes/Home";
 import Movie from "./routes/Movie";
 import NotFound from "./routes/NotFound";
 
-import NewHome from "./routes/NewHome";
-import NewMovie from "./routes/NewMovie";
-
 const App = () => {
   return (
     <>
       <Header />
 
       <Routes>
-        <Route path="/" element={<NewHome />} />
-        <Route path="/:movieId" element={<NewMovie />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/:movieId" element={<Movie />} />
         <Route path="/*" element={<NotFound />} />
       </Routes>
 

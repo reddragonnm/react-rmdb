@@ -1,9 +1,10 @@
 import React from "react";
 import { useParams } from "react-router-dom";
+import { useQuery } from "react-query";
 
 import { IMAGE_BASE_URL, POSTER_SIZE } from "../api/config";
 import NoImg from "../images/no_image.jpg";
-import useMovieFetch from "../hooks/useMovieFetch";
+import API from "../api/API";
 
 import Spinner from "../components/Spinner";
 import BreadCrumb from "../components/BreadCrumb";
@@ -12,12 +13,30 @@ import MovieInfoBar from "../components/MovieInfoBar";
 import Grid from "../components/Grid";
 import Actor from "../components/Actor";
 
-const Movie = () => {
+const NewMovie = () => {
   const { movieId } = useParams();
-  const { state: movie, loading, error } = useMovieFetch(movieId);
 
-  if (error) return <div>Something went wrong ...</div>;
-  if (loading) return <Spinner />;
+  const {
+    isLoading,
+    isError,
+    data: movie,
+  } = useQuery(["movie", movieId], async () => {
+    const movie = await API.fetchMovie(movieId);
+    const credits = await API.fetchCredits(movieId);
+
+    const directors = credits.crew.filter(
+      (member) => member.job === "Director"
+    );
+
+    return {
+      ...movie,
+      actors: credits.cast,
+      directors,
+    };
+  });
+
+  if (isError) return <div>Something went wrong ...</div>;
+  if (isLoading) return <Spinner />;
 
   return (
     <>
@@ -49,4 +68,4 @@ const Movie = () => {
   );
 };
 
-export default Movie;
+export default NewMovie;

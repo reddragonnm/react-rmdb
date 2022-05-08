@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useInfiniteQuery } from "react-query";
 
+import API from "../api/API";
 import { POSTER_SIZE, BACKDROP_SIZE, IMAGE_BASE_URL } from "../api/config";
-import useHomeFetch from "../hooks/useHomeFetch";
 
 import NoImg from "../images/no_image.jpg";
 
@@ -12,47 +13,69 @@ import Thumbnail from "../components/Thumbnail";
 import Spinner from "../components/Spinner";
 import Button from "../components/Button";
 
-const Home = () => {
+const NewHome = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { state, loading, loadMoreCallBack, error } = useHomeFetch(searchTerm);
+  const fetchMovies = useCallback(
+    ({ pageParam = 1 }) => {
+      return API.fetchMovies(searchTerm, pageParam);
+    },
+    [searchTerm]
+  );
 
-  if (error) return <div>Something went wrong ...</div>;
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+  } = useInfiniteQuery(["movies", searchTerm], fetchMovies, {
+    getNextPageParam: (lastPage) => {
+      if (lastPage.page + 1 < lastPage.total_pages) return lastPage.page + 1;
+    },
+  });
+
+  if (isError) return <div>Something went wrong...</div>;
 
   return (
     <>
-      {!searchTerm && state.results[0] && (
+      {!searchTerm && !isFetching && (
         <HeroImage
-          image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}${state.results[0].backdrop_path}`}
-          title={state.results[0].original_title}
-          text={state.results[0].overview}
+          image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}${data.pages[0].results[0].backdrop_path}`}
+          title={data.pages[0].results[0].original_title}
+          text={data.pages[0].results[0].overview}
         />
       )}
 
       <SearchBar setSearchTerm={setSearchTerm} />
 
-      <Grid header={searchTerm ? `Search results` : "Popular Movies"}>
-        {state.results.map((movie) => (
-          <Thumbnail
-            key={movie.id}
-            movieId={movie.id}
-            image={
-              movie.poster_path
-                ? `${IMAGE_BASE_URL}${POSTER_SIZE}${movie.poster_path}`
-                : NoImg
-            }
-            clickable
-          />
-        ))}
-      </Grid>
+      {data && data.pages.length > 0 && (
+        <Grid header={searchTerm ? `Search results` : "Popular Movies"}>
+          {data.pages.map((page) => {
+            return page.results.map((movie) => (
+              <Thumbnail
+                key={movie.id}
+                movieId={movie.id}
+                image={
+                  movie.poster_path
+                    ? `${IMAGE_BASE_URL}${POSTER_SIZE}${movie.poster_path}`
+                    : NoImg
+                }
+                clickable
+              />
+            ));
+          })}
+        </Grid>
+      )}
 
-      {loading && <Spinner />}
+      {isFetchingNextPage && <Spinner />}
 
-      {state.page < state.total_pages && !loading && (
-        <Button text="Load More" callback={loadMoreCallBack} />
+      {hasNextPage && !isFetching && (
+        <Button text="Load More" callback={() => fetchNextPage()} />
       )}
     </>
   );
 };
 
-export default Home;
+export default NewHome;
