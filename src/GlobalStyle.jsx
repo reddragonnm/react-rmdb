@@ -40,4 +40,8 @@ body {
     color: var(--white);
   }
 }
+
+.spaced-footer {
+  margin: 1rem;
+}
 `;

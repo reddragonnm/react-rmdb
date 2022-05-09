@@ -8,6 +8,8 @@ import Home from "./routes/Home";
 import Movie from "./routes/Movie";
 import NotFound from "./routes/NotFound";
 
+import styled from "styled-components";
+
 const App = () => {
   return (
     <>
@@ -19,9 +21,10 @@ const App = () => {
         <Route path="/*" element={<NotFound />} />
       </Routes>
 
+      <div className="spaced-footer"></div>
+
       <GlobalStyle />
     </>
   );
 };
-
 export default App;
