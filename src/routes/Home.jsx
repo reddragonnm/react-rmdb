@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useInfiniteQuery } from "react-query";
 
-import API from "../api/API";
+import { fetchMovies } from "../api/API";
 import { POSTER_SIZE, BACKDROP_SIZE, IMAGE_BASE_URL } from "../api/config";
 
 import NoImg from "../images/no_image.jpg";
@@ -16,13 +16,13 @@ import Button from "../components/Button";
 const NewHome = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchMovies = useCallback(
-    ({ pageParam = 1 }) => API.fetchMovies(searchTerm, pageParam),
+  const getInfiniteMovies = useCallback(
+    ({ pageParam = 1 }) => fetchMovies(searchTerm, pageParam),
     [searchTerm]
   );
 
   const { data, fetchNextPage, hasNextPage, isError, isFetchingNextPage } =
-    useInfiniteQuery(["movies", searchTerm], fetchMovies, {
+    useInfiniteQuery(["movies", searchTerm], getInfiniteMovies, {
       getNextPageParam: (lastPage) => {
         if (lastPage.page < lastPage.total_pages) return lastPage.page + 1;
       },

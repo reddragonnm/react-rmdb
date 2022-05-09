@@ -4,7 +4,7 @@ import { useQuery } from "react-query";
 
 import { IMAGE_BASE_URL, POSTER_SIZE } from "../api/config";
 import NoImg from "../images/no_image.jpg";
-import API from "../api/API";
+import { fetchMovie, fetchCredits } from "../api/API";
 
 import Spinner from "../components/Spinner";
 import BreadCrumb from "../components/BreadCrumb";
@@ -21,8 +21,10 @@ const NewMovie = () => {
     isError,
     data: movie,
   } = useQuery(["movie", movieId], async () => {
-    const movie = await API.fetchMovie(movieId);
-    const credits = await API.fetchCredits(movieId);
+    const [movie, credits] = await Promise.all([
+      fetchMovie(movieId),
+      fetchCredits(movieId),
+    ]);
 
     const directors = credits.crew.filter(
       (member) => member.job === "Director"
